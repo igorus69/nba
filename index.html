@@ -35,7 +35,7 @@ table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
 th,td{padding:5px 3px;text-align:right;border-bottom:1px solid var(--line)}th:first-child,td:first-child{text-align:left}
 .lock{color:var(--mute);font-size:13px;margin-top:6px}
 .lb{font-size:13px;color:var(--mute);margin:8px 0 3px}
-.err{background:var(--red);color:#fff;padding:8px 10px;border-radius:10px;margin-bottom:10px;font-size:14px}
+.err{position:sticky;top:0;z-index:5;background:var(--red);color:#fff;padding:8px 10px;border-radius:10px;margin-bottom:10px;font-size:14px}
 .pick{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .pick button{flex:1 1 40%;padding:16px;border:2px solid var(--ink);background:transparent;color:var(--ink);border-radius:12px;font:700 24px "Barlow Condensed",sans-serif}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--red);outline-offset:2px}
@@ -58,7 +58,7 @@ th{color:var(--mute);font-weight:600}
 nav{background:#0B1F3F;border-top:0;gap:0;padding:0 0 env(safe-area-inset-bottom,0px)}
 nav button{border:0;border-top:4px solid transparent;border-radius:0;background:transparent;color:#C9D3E6;padding:12px 4px;text-transform:uppercase;letter-spacing:.04em}
 nav button[aria-pressed=true]{background:transparent;color:#fff;border-top-color:#C8102E}
-.ok{background:#007A33;color:#fff;padding:8px 10px;border-radius:10px;margin-bottom:10px;font-size:14px}
+.ok{position:sticky;top:0;z-index:5;background:#007A33;color:#fff;padding:8px 10px;border-radius:10px;margin-bottom:10px;font-size:14px}
 .nsel{background:#0B1F3F;border-radius:10px;padding:6px 10px;margin-bottom:10px;display:flex;align-items:center;gap:10px;color:#fff}
 .nsel span{font:700 15px 'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
 .nsel select{flex:1;font:700 15px/1.3 'Barlow Condensed',sans-serif;padding:6px 8px;border:2px solid #FDB927;background:#fff;color:#0B1F3F;border-radius:8px}
@@ -99,8 +99,8 @@ function vb(){
  const my=mine(),L=Date.now()>=t0();
  let h=`<div class="card"><b>Pronostic de victoires</b><div class="t">Choisis une équipe pour chaque adversaire : il devra deviner son nombre de victoires. +5 si pile, puis −1 par victoire d'écart.</div>`;
  h+=OPP().map(q=>`<div class="lb">Équipe pour ${q}</div><div class="r"><input data-wt="${q}" placeholder="ex. BOS" value="${e((my.wt||{})[q]||'')}" ${L?'disabled':''}></div>`).join('');
- h+=`<div class="lb"><b>Mes devinettes</b></div>`+OPP().map(p=>{const d=dOf(p),t=d&&d.wt&&d.wt[ME.name];return `<div class="lb">Victoires de ${t?e(t):'(équipe pas encore choisie)'} · choisie par ${p}</div><div class="r"><input type="number" inputmode="numeric" data-wg="${p}" value="${(my.wg||{})[p]??''}" ${L||!t?'disabled':''}></div>`}).join('')+'</div>';
- h+=`<div class="card"><b>Patate de Draymond</b><div class="t">Une nuit par adversaire (3 par saison) : ses points de la nuit sont annulés. À annoncer avant le premier match de la nuit (date de la journée américaine).</div>`+OPP().map(q=>`<div class="lb">Pour ${q}</div><div class="r"><input type="date" data-dr="${q}" value="${e((!Array.isArray(my.dr)&&my.dr||{})[q]||'')}"></div>`).join('')+'</div>';
+ h+=`<div class="lb"><b>Mes devinettes</b></div>`+OPP().map(p=>{const d=dOf(p),t=d&&d.wt&&d.wt[ME.name];return `<div class="lb">Victoires de ${t?e(t):'(équipe pas encore choisie)'} · choisie par ${p}</div><div class="r"><input type="number" inputmode="numeric" data-wg="${p}" value="${(my.wg||{})[p]??''}" ${L||!t?'disabled':''}></div>`}).join('')+(L?'':'<button class="b" data-sv="1">Enregistrer</button>')+'</div>';
+ h+=`<div class="card"><b>Patate de Draymond</b><div class="t">Une nuit par adversaire (3 par saison) : ses points de la nuit sont annulés. À annoncer avant le premier match de la nuit (date de la journée américaine).</div>`+OPP().map(q=>`<div class="lb">Pour ${q}</div><div class="r"><input type="date" data-dr="${q}" value="${e((!Array.isArray(my.dr)&&my.dr||{})[q]||'')}"></div>`).join('')+'<button class="b" data-sv="1">Enregistrer</button></div>';
  return h}
 function vw(){const T=tm();if(!T.length)return '';return `<div class="card"><b>Victoires réelles des équipes</b>${T.map(t=>`<div class="lb">${e(t)}</div><div class="r"><input type="number" inputmode="numeric" id="sw${t}" value="${((SE||{}).w||{})[t]??''}"></div>`).join('')}<button class="b" id="sawn">Enregistrer les victoires</button></div>`}
 function savePatch(patch){return DB.doc('picks/'+ME.uid).set(Object.assign({},mine(),patch))}
@@ -128,8 +128,8 @@ function render(){
  if(!ME.name){
   if(LG){const d0=K[LG],nw=!(d0&&d0.name);h+=`<div class="card"><b>${LG}</b><p class="sub">${nw?'Première fois : choisis un code à 4 chiffres et retiens-le.':'Entre ton code à 4 chiffres.'}</p><div class="r"><input id="pin" type="password" inputmode="numeric" maxlength="4" placeholder="Code" autocomplete="off"></div><button class="b" id="lgok">Valider</button><button class="b" id="lgx" style="background:#0B1F3F">Retour</button></div>`}
   else h+=`<div class="card"><b>Qui es-tu ?</b><p class="sub">Choisis ton nom.</p><div class="pick">${PL.map(n=>`<button data-claim="${n}">${n}${K[n]&&K[n].name?'':' (libre)'}</button>`).join('')}</div></div>`;
- }else h+=tab==='p'?vp():tab==='c'?vc():tab==='s'?vs()+vb():va()+vz()+vw();
- h+='<p class="sub" style="text-align:center">Version 2.1 · 18/10/2026</p>';h+=`<nav><button data-tab="p" aria-pressed="${tab==='p'}">Pronos</button><button data-tab="c" aria-pressed="${tab==='c'}">Classement</button><button data-tab="s" aria-pressed="${tab==='s'}">Saison</button>${ME.owner?`<button data-tab="a" aria-pressed="${tab==='a'}">Admin</button>`:''}</nav>`;
+ }else h+=tab==='p'?vp():tab==='c'?vc():tab==='s'?vs()+vb():vj()+va()+vz()+vw();
+ h+='<p class="sub" style="text-align:center">Version 2.3 · 18/10/2026</p>';h+=`<nav><button data-tab="p" aria-pressed="${tab==='p'}">Pronos</button><button data-tab="c" aria-pressed="${tab==='c'}">Classement</button><button data-tab="s" aria-pressed="${tab==='s'}">Saison</button>${ME.owner?`<button data-tab="a" aria-pressed="${tab==='a'}">Admin</button>`:''}</nav>`;
  $('root').innerHTML=h}
 function nsel(){const ns=nights();if(!ns.length)return '';if(!night||!ns.includes(night))night=defNight();return `<div class="nsel"><span>Nuit du</span><select id="ns" aria-label="Nuit">${ns.map(n=>`<option value="${n}" ${n===night?'selected':''}>${fd(n)}</option>`).join('')}</select></div>`}
 function vp(){
@@ -156,7 +156,7 @@ function vs(){
  let h=`<div class="card"><b>Pronostics de saison</b><div class="t">+10 pts par bonne réponse. ${L?'Verrouillé depuis le début de la saison.':'Modifiable jusqu\'au premier match de la saison.'}</div>`;
  if(!L)h+=SC.map(c=>`<div class="lb">${c}</div><div class="r"><input data-s="${c}" value="${e(my[c]||'')}" placeholder="Joueur ou équipe"></div>`).join('');
  else h+=`<table><tr><th></th>${PL.map(n=>`<th>${n}</th>`).join('')}</tr>${SC.map(c=>`<tr><td>${c}</td>${PL.map(n=>{const d=Object.values(K).find(x=>x.name===n);return `<td>${e(d&&d.s&&d.s[c]||'—')}</td>`}).join('')}</tr>`).join('')}</table>`;
- return h+'</div>'}
+ return h+(L?'':'<button class="b" data-sv="1">Enregistrer</button>')+'</div>'}
 function dl(name,data){EXP={name,data};render()}
 function expCard(){return `<div class="card"><b>Copie ce texte</b> <span class="t">(${e(EXP.name)})</span><div class="t">Touche la zone, puis « Tout sélectionner » et copie. Garde-le dans un message ou un fichier.</div><textarea readonly id="expt" style="width:100%;height:160px;box-sizing:border-box;border:2px solid var(--line);border-radius:8px;padding:6px;font-size:12px">${e(EXP.data)}</textarea><button class="b" id="exps">Tout sélectionner</button><button class="b" id="expx" style="background:#0B1F3F">Fermer</button></div>`}
 function csvx(){const L=[['Nuit','Match','Domicile','Joueur','Équipe','Écart','OT','Résultat','Points']];G.slice().sort((a,b)=>a.t-b.t).forEach(g=>{if(!locked(g))return;const o=g.r?gp(g):null;PL.forEach(n=>{const q=kp(n,g);L.push([fd(g.night),g.a+' @ '+g.b,g.b,n,q.w?lab(g,q.w):'',q.m,q.ot?'OT':'',g.r?lab(g,g.r.w)+' +'+g.r.m+(g.r.ot?' OT':''):'',o?o[n]:''])})});return '\ufeff'+L.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(';')).join('\n')}
@@ -165,6 +165,7 @@ function vz(){
  if(night&&!isSun(night))h+=`<div class="card"><b>Marqueurs de la nuit ${fd(night)}</b><div class="lb">Meilleur marqueur réel</div><div class="r"><input id="tn" placeholder="Nom" value="${e(top.name||'')}"><input type="number" inputmode="numeric" id="tp" placeholder="pts" value="${top.pts??''}"></div><div class="lb">Autres orthographes acceptées (séparées par des virgules)</div><div class="r"><input id="ta" value="${e((top.al||[]).join(', '))}"></div>${PL.map(p=>`<div class="lb">Choix de ${p} : ${e(pk[p].name||'—')}</div><div class="r"><input type="number" inputmode="numeric" id="pp${p}" placeholder="ses points" value="${pp[p]??''}"></div>`).join('')}<button class="b" id="savn">Enregistrer les marqueurs</button></div>`;
  h+=bk;h+=`<div class="card"><b>Résultats de saison</b>${SC.map((c,i)=>`<div class="lb">${c}</div><div class="r"><input id="se${i}" value="${e((SE||{})[c]||'')}" placeholder="Réponse"></div>`).join('')}<button class="b" id="sase">Enregistrer</button></div>`;
  return h}
+function vj(){return `<div class="card"><b>Joueurs inscrits</b><table><tr><th></th><th>Inscrit</th><th>Saison</th><th>Équipes</th></tr>${PL.map(p=>{const d=K[p],ok=d&&d.name,sn=d&&d.s?SC.filter(c=>d.s[c]).length:0,w=d&&d.wt?Object.values(d.wt).filter(Boolean).length:0;return `<tr><td>${p}</td><td>${ok?'✔':'—'}</td><td>${ok?sn+'/7':'—'}</td><td>${ok?w+'/3':'—'}</td></tr>`}).join('')}</table></div>`}
 function bonusCard(){const a=sp(),w={};PL.forEach(p=>w[p]=0);WINS(w);const has=SE&&SE.w&&Object.keys(SE.w).length;return `<div class="card"><b>Bonus de saison</b><div class="t">${has?'Pronostics de saison (+10 par bonne réponse) et pronostic de victoires (+5, −1 par victoire d\'écart).':'À la fin de la saison : pronostics de saison et pronostic de victoires. Rien n\'est encore compté.'}</div><table><tr><th></th><th>Saison</th><th>Victoires</th></tr>${PL.map(p=>`<tr><td>${p}</td><td>${a[p]-w[p]}</td><td>${w[p]}</td></tr>`).join('')}</table></div>`}
 let cnight=null;
 function cnCard(N){const nk=Object.keys(N).sort();if(!cnight||!nk.includes(cnight))cnight=nk[nk.length-1];const d=cnight,M={},MQ={};PL.forEach(n=>{M[n]=0;MQ[n]=0});G.filter(g=>g.night===d&&g.r).forEach(g=>{const o=gp(g,'m'),q=gp(g,'s');PL.forEach(n=>{M[n]+=o[n];MQ[n]+=q[n]})});const s=nsp(d),R=PL.map(n=>({n,m:M[n],q:MQ[n]+s.q[n],b:s.b[n],t:N[d][n]||0,h:hit(n,d)})).sort((a,b)=>b.t-a.t);
@@ -188,7 +189,7 @@ let PEND=0,OKM='';
 async function wr(p,f){PEND++;OKM='';try{err='';await f();await refresh()}catch(x){err='Erreur : '+(x&&x.message||x);render()}finally{PEND--}}
 document.addEventListener('click',t=>{const d=t.target.dataset;
  if(d.tab){tab=d.tab;OKM='';render()}
- if(t.target.id==='savebtn'){const a=document.activeElement;if(a&&a.blur)a.blur();setTimeout(async()=>{let n=0;while(PEND>0&&n<60){await new Promise(r=>setTimeout(r,100));n++}await refresh();if(PEND>0){err='Enregistrement un peu long, appuie à nouveau.'}else{OKM='✔ Pronos enregistrés à '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}render()},60)}
+ if(t.target.id==='savebtn'||d.sv!==undefined){const a=document.activeElement;if(a&&a.blur)a.blur();setTimeout(async()=>{let n=0;while(PEND>0&&n<60){await new Promise(r=>setTimeout(r,100));n++}await refresh();if(PEND>0){err='Enregistrement un peu long, appuie à nouveau.'}else{OKM='✔ Pronos enregistrés à '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}render()},60)}
  if(t.target.id==='exj')dl('sauvegarde-nba-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({exporte:new Date().toISOString(),matchs:G,pronos:K,nuits:NS,saison:SE},null,1));
  if(t.target.id==='exc')dl('resultats-nba-'+new Date().toISOString().slice(0,10)+'.csv',csvx());
  if(t.target.id==='savn'){const top={name:$('tn').value.trim(),pts:$('tp').value===''?null:+$('tp').value,al:$('ta').value.split(',').map(s=>s.trim()).filter(Boolean)},pp={};PL.forEach(p=>{const v=$('pp'+p).value;if(v!=='')pp[p]=+v});wr(0,()=>DB.doc('nights/'+night).set({top,pp}))}
