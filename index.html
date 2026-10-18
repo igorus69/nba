@@ -129,7 +129,7 @@ function render(){
   if(LG){const d0=K[LG],nw=!(d0&&d0.name);h+=`<div class="card"><b>${LG}</b><p class="sub">${nw?'Première fois : choisis un code à 4 chiffres et retiens-le.':'Entre ton code à 4 chiffres.'}</p><div class="r"><input id="pin" type="password" inputmode="numeric" maxlength="4" placeholder="Code" autocomplete="off"></div><button class="b" id="lgok">Valider</button><button class="b" id="lgx" style="background:#0B1F3F">Retour</button></div>`}
   else h+=`<div class="card"><b>Qui es-tu ?</b><p class="sub">Choisis ton nom.</p><div class="pick">${PL.map(n=>`<button data-claim="${n}">${n}${K[n]&&K[n].name?'':' (libre)'}</button>`).join('')}</div></div>`;
  }else h+=tab==='p'?vp():tab==='c'?vc():tab==='s'?vs()+vb():va()+vz()+vw();
- h+='<p class="sub" style="text-align:center">Version 2.0 · 18/10/2026</p>';h+=`<nav><button data-tab="p" aria-pressed="${tab==='p'}">Pronos</button><button data-tab="c" aria-pressed="${tab==='c'}">Classement</button><button data-tab="s" aria-pressed="${tab==='s'}">Saison</button>${ME.owner?`<button data-tab="a" aria-pressed="${tab==='a'}">Admin</button>`:''}</nav>`;
+ h+='<p class="sub" style="text-align:center">Version 2.1 · 18/10/2026</p>';h+=`<nav><button data-tab="p" aria-pressed="${tab==='p'}">Pronos</button><button data-tab="c" aria-pressed="${tab==='c'}">Classement</button><button data-tab="s" aria-pressed="${tab==='s'}">Saison</button>${ME.owner?`<button data-tab="a" aria-pressed="${tab==='a'}">Admin</button>`:''}</nav>`;
  $('root').innerHTML=h}
 function nsel(){const ns=nights();if(!ns.length)return '';if(!night||!ns.includes(night))night=defNight();return `<div class="nsel"><span>Nuit du</span><select id="ns" aria-label="Nuit">${ns.map(n=>`<option value="${n}" ${n===night?'selected':''}>${fd(n)}</option>`).join('')}</select></div>`}
 function vp(){
@@ -207,7 +207,7 @@ document.addEventListener('click',t=>{const d=t.target.dataset;
   if(o.games){const m=(await sget('games'))||{};for(const[id,g]of Object.entries(o.games))m[id]=Object.assign({},m[id]||{},g);await sset('games',m)}
   if(o.nights){const m=(await sget('nights'))||{};for(const[id,g]of Object.entries(o.nights))m[id]=Object.assign({},m[id]||{},g);await sset('nights',m)}
   if(o.season){const m=(await sget('season'))||{};await sset('season',Object.assign({},m,o.season))}
-  $('imp').value='';err='Import réussi'})}
+  $('imp').value='';OKM='✔ Import réussi'})}
  if(t.target.id==='addg'){const n=$('an').value,a=$('aa').value.trim(),b=$('ab').value.trim(),tt=$('at').value;
   if(!n||!a||!b||!tt){err='Remplis la nuit, les deux équipes et le coup d\'envoi.';render();return}
   night=n;wr(0,()=>DB.collection('games').add({night:n,a,b,t:new Date(tt).getTime(),gotn:false,r:null}))}
