@@ -62,6 +62,10 @@ nav button[aria-pressed=true]{background:transparent;color:#fff;border-top-color
 .nsel{background:#0B1F3F;border-radius:10px;padding:6px 10px;margin-bottom:10px;display:flex;align-items:center;gap:10px;color:#fff}
 .nsel span{font:700 15px 'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
 .nsel select{flex:1;font:700 15px/1.3 'Barlow Condensed',sans-serif;padding:6px 8px;border:2px solid #FDB927;background:#fff;color:#0B1F3F;border-radius:8px}
+.rec td:nth-child(2){text-align:left}
+tr.cat th{background:#0B1F3F;color:#fff;text-align:left;padding:6px 8px;font:700 15px 'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.04em}
+tr.cat small{font:500 12px Barlow,sans-serif;text-transform:none;opacity:.9}
+.cpy{width:100%;height:110px;box-sizing:border-box;border:2px solid var(--line);border-radius:8px;padding:6px;font-size:13px;background:var(--bg);color:var(--ink)}
 </style>
 </head>
 <body>
@@ -101,13 +105,18 @@ function vdev(){const L=Date.now()>=t0(),R=[];
   const show=L||ME.name===q,w=SE&&SE.w&&t?SE.w[t]:undefined,has=g!=null&&g!=='';
   R.push(`<tr><td>${e(t||'—')}</td><td>${p}</td><td>${q}</td><td>${show?(has?g:'—'):'🔒'}</td><td>${w!=null?w:'—'}</td><td>${show&&has&&w!=null?5-Math.abs(+g-w):'—'}</td></tr>`)}));
  return `<div class="card"><b>Récap des devinettes</b><div class="t">${L?'Toutes les devinettes de victoires.':'Avant le début de la saison, tu ne vois que les lignes qui te concernent. Les devinettes des autres restent cachées.'}</div>${R.length?`<table><tr><th>Équipe</th><th>Choisie par</th><th>Pour</th><th>Devine</th><th>Réel</th><th>Pts</th></tr>${R.join('')}</table>`:'<div class="t">Rien pour l\'instant.</div>'}</div>`}
+function vuse(){const now=Date.now(),lim=n=>Number.isFinite(nT0(n))?nT0(n):new Date(n+'T00:00:00Z').getTime();
+ const f=a=>{const j=a.filter(n=>now>=lim(n)).length;return a.length+'/3'+(j?' ('+j+' jouée'+(j>1?'s':'')+')':'')};
+ const row=p=>{const d=K[p],dr=d&&d.dr&&!Array.isArray(d.dr)?Object.values(d.dr).filter(Boolean):[],du=d&&d.du&&!Array.isArray(d.du)?Object.values(d.du).filter(Boolean):[];return `<tr><td>${p}</td><td>${f(dr)}</td><td>${f(du)}</td></tr>`};
+ return `<div class="card"><b>Récap : patates et défis</b><div class="t">Utilisés sur 3 par joueur. Entre parenthèses : déjà joués.</div><table><tr><th></th><th>Patates</th><th>Trash Talk</th></tr>${PL.map(row).join('')}</table></div>`}
+function vpat(){const my=mine();let h='';
+  h+=`<div class="card"><b>Patate de Draymond</b><div class="t">Une nuit par adversaire (3 par saison) : ses points de la nuit sont annulés. À annoncer avant le premier match de la nuit (date de la journée américaine).</div>`+OPP().map(q=>`<div class="lb">Pour ${q}</div><div class="r"><input type="date" data-dr="${q}" value="${e((!Array.isArray(my.dr)&&my.dr||{})[q]||'')}"></div>`).join('')+'<button class="b" data-sv="1">Enregistrer</button></div>';
+ return h}
 function vb(){
  const my=mine(),L=Date.now()>=t0();
  let h=`<div class="card"><b>Pronostic de victoires</b><div class="t">Choisis une équipe pour chaque adversaire : il devra deviner son nombre de victoires. +5 si pile, puis −1 par victoire d'écart.</div>`;
  h+=OPP().map(q=>`<div class="lb">Équipe pour ${q}</div><div class="r"><input data-wt="${q}" placeholder="ex. BOS" value="${e((my.wt||{})[q]||'')}" ${L?'disabled':''}></div>`).join('');
  h+=`<div class="lb"><b>Mes devinettes</b></div>`+OPP().map(p=>{const d=dOf(p),t=d&&d.wt&&d.wt[ME.name];return `<div class="lb">Victoires de ${t?e(t):'(équipe pas encore choisie)'} · choisie par ${p}</div><div class="r"><input type="number" inputmode="numeric" data-wg="${p}" value="${(my.wg||{})[p]??''}" ${L||!t?'disabled':''}></div>`}).join('')+(L?'':'<button class="b" data-sv="1">Enregistrer</button>')+'</div>';
- h+=`<div class="card"><b>Patate de Draymond</b><div class="t">Une nuit par adversaire (3 par saison) : ses points de la nuit sont annulés. À annoncer avant le premier match de la nuit (date de la journée américaine).</div>`+OPP().map(q=>`<div class="lb">Pour ${q}</div><div class="r"><input type="date" data-dr="${q}" value="${e((!Array.isArray(my.dr)&&my.dr||{})[q]||'')}"></div>`).join('')+'<button class="b" data-sv="1">Enregistrer</button></div>';
- h+=duelUI();
  return h}
 function vw(){const T=tm();if(!T.length)return '';return `<div class="card"><b>Victoires réelles des équipes</b>${T.map(t=>`<div class="lb">${e(t)}</div><div class="r"><input type="number" inputmode="numeric" id="sw${t}" value="${((SE||{}).w||{})[t]??''}"></div>`).join('')}<button class="b" id="sawn">Enregistrer les victoires</button></div>`}
 function savePatch(patch){return DB.doc('picks/'+ME.uid).set(Object.assign({},mine(),patch))}
@@ -135,8 +144,8 @@ function render(){
  if(!ME.name){
   if(LG){const d0=K[LG],nw=!(d0&&d0.name);h+=`<div class="card"><b>${LG}</b><p class="sub">${nw?'Première fois : choisis un code à 4 chiffres et retiens-le.':'Entre ton code à 4 chiffres.'}</p><div class="r"><input id="pin" type="password" inputmode="numeric" maxlength="4" placeholder="Code" autocomplete="off"></div><button class="b" id="lgok">Valider</button><button class="b" id="lgx" style="background:#0B1F3F">Retour</button></div>`}
   else h+=`<div class="card"><b>Qui es-tu ?</b><p class="sub">Choisis ton nom.</p><div class="pick">${PL.map(n=>`<button data-claim="${n}">${n}${K[n]&&K[n].name?'':' (libre)'}</button>`).join('')}</div></div>`;
- }else h+=tab==='p'?vp():tab==='c'?vc():tab==='s'?vs()+vb()+vdev():vi()+va()+vz()+vw();
- h+='<p class="sub" style="text-align:center">Version 2.6 · 21/10/2026</p>';h+=`<nav><button data-tab="p" aria-pressed="${tab==='p'}">Pronos</button><button data-tab="c" aria-pressed="${tab==='c'}">Classement</button><button data-tab="s" aria-pressed="${tab==='s'}">Saison</button>${ME.owner?`<button data-tab="a" aria-pressed="${tab==='a'}">Admin</button>`:''}</nav>`;
+ }else h+=tab==='p'?vp():tab==='c'?vc():tab==='s'?vpat()+duelUI()+vuse()+vs()+vb()+vdev():vi()+vcopy()+va()+vz()+vw();
+ h+='<p class="sub" style="text-align:center">Version 2.8 · 21/10/2026</p>';h+=`<nav><button data-tab="p" aria-pressed="${tab==='p'}">Pronos</button><button data-tab="c" aria-pressed="${tab==='c'}">Classement</button><button data-tab="s" aria-pressed="${tab==='s'}">Saison</button>${ME.owner?`<button data-tab="a" aria-pressed="${tab==='a'}">Admin</button>`:''}</nav>`;
  $('root').innerHTML=h}
 function nsel(){const ns=nights();if(!ns.length)return '';if(!night||!ns.includes(night))night=defNight();return `<div class="nsel"><span>Nuit du</span><select id="ns" aria-label="Nuit">${ns.map(n=>`<option value="${n}" ${n===night?'selected':''}>${fd(n)}</option>`).join('')}</select></div>`}
 function vp(){
@@ -154,7 +163,7 @@ function vp(){
 function vns(){
  if(!night)return '';if(isSun(night))return '<div class="card"><b>Super Sunday</b><p class="sub">Le dimanche, choisis un marqueur sous chaque match.</p></div>';
  const L=Date.now()>=nT0(night),mi=(mine().np||{})[night]||'',x=NS[night]||{};
- let h=`<div class="card"><b>Meilleur marqueur de la nuit</b><div class="t">+3 s'il est le meilleur de tous les matchs, +1 s'il bat les choix des autres, −3 sous 20 pts.</div><div class="t"><b>Faites gaffe à l'orthographe (Nom+prénom)</b> Hein Gui !!</div>`;
+ let h=`<div class="card"><b>Meilleur marqueur de la nuit</b><div class="t">+3 s'il est le meilleur de tous les matchs, +1 s'il bat les choix des autres, −3 sous 20 pts.</div><div class="t"><b>Faites gaffe à l'orthographe</b> Hein Gui !!</div>`;
  if(!L)h+=`<div class="r"><input data-np="${night}" placeholder="Nom complet du joueur" value="${e(mi)}"></div><div class="lock">Modifiable jusqu'au premier coup d'envoi de la nuit.</div>`;
  else{const pk=npk(night),sb=x.top&&x.top.name?sc(x.top,pk):null;h+=`<table><tr><th></th><th>Choix</th><th>Pts</th></tr>${PL.map(n=>`<tr><td>${n}</td><td>${e(pk[n].name||'—')}${pk[n].pts!==''?' ('+pk[n].pts+' pts)':''}</td><td style="color:${sb&&sb[n]>0?'#007A33':sb&&sb[n]<0?'#C8102E':'inherit'}"><b>${sb?(sb[n]>0?'+':'')+sb[n]:'—'}</b></td></tr>`).join('')}</table>`;if(x.top&&x.top.name)h+=`<div class="t">Meilleur marqueur : <b>${e(x.top.name)} (${x.top.pts})</b></div>`}
  return h+'</div>'}
@@ -162,11 +171,21 @@ function vs(){
  const L=Date.now()>=t0(),my=mine().s||{};
  let h=`<div class="card"><b>Pronostics de saison</b><div class="t">+10 pts par bonne réponse. ${L?'Verrouillé depuis le début de la saison.':'Modifiable jusqu\'au premier match de la saison.'}</div>`;
  if(!L)h+=SC.map(c=>`<div class="lb">${c}</div><div class="r"><input data-s="${c}" value="${e(my[c]||'')}" placeholder="Joueur ou équipe"></div>`).join('');
- else h+=`<table><tr><th></th>${PL.map(n=>`<th>${n}</th>`).join('')}</tr>${SC.map(c=>`<tr><td>${c}</td>${PL.map(n=>{const d=Object.values(K).find(x=>x.name===n);return `<td>${e(d&&d.s&&d.s[c]||'—')}</td>`}).join('')}</tr>`).join('')}</table>`;
+ else h+=`<table class="rec">${SC.map(c=>{const r=SE&&SE[c];return `<tr class="cat"><th colspan="2">${c}${r?` <small>· résultat : ${e(r)}</small>`:''}</th></tr>${PL.map(n=>{const d=dOf(n),a=d&&d.s&&d.s[c]||'',ok=r&&a&&nrm(a)===nrm(r);return `<tr><td>${n}</td><td>${e(a||'—')}${ok?' ✔':''}</td></tr>`}).join('')}`}).join('')}</table>`;
  return h+(L?'':'<button class="b" data-sv="1">Enregistrer</button>')+'</div>'}
 function dl(name,data){EXP={name,data};render()}
 function expCard(){return `<div class="card"><b>Copie ce texte</b> <span class="t">(${e(EXP.name)})</span><div class="t">Touche la zone, puis « Tout sélectionner » et copie. Garde-le dans un message ou un fichier.</div><textarea readonly id="expt" style="width:100%;height:160px;box-sizing:border-box;border:2px solid var(--line);border-radius:8px;padding:6px;font-size:12px">${e(EXP.data)}</textarea><button class="b" id="exps">Tout sélectionner</button><button class="b" id="expx" style="background:#0B1F3F">Fermer</button></div>`}
 function csvx(){const L=[['Nuit','Match','Domicile','Joueur','Équipe','Écart','OT','Résultat','Points']];G.slice().sort((a,b)=>a.t-b.t).forEach(g=>{if(!locked(g))return;const o=g.r?gp(g):null;PL.forEach(n=>{const q=kp(n,g);L.push([fd(g.night),g.a+' @ '+g.b,g.b,n,q.w?lab(g,q.w):'',q.m,q.ot?'OT':'',g.r?lab(g,g.r.w)+' +'+g.r.m+(g.r.ot?' OT':''):'',o?o[n]:''])})});return '\ufeff'+L.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(';')).join('\n')}
+let rnight=null;
+function lastStarted(){const ns=nights().filter(n=>Date.now()>=nT0(n));return ns.length?ns[ns.length-1]:null}
+function copyText(){const n=rnight&&nights().includes(rnight)?rnight:lastStarted();if(!n)return '';
+ const gs=G.filter(g=>g.night===n).sort((a,b)=>a.t-b.t);let t='Résultats de la nuit du '+fd(n)+' s\'il te plaît, et le report des 4 meilleurs marqueurs choisis :\n';
+ if(isSun(n)){gs.forEach(g=>{t+=g.a+' @ '+g.b+' : '+PL.map(p=>{const d=dOf(p),m=d&&d.ms&&d.ms[g.id];return p+' = '+(m||'(rien)')}).join(' ; ')+'\n'})}
+ else{t+=PL.map(p=>{const d=dOf(p),m=d&&d.np&&d.np[n];return p+' = '+(m||'(rien)')}).join(' ; ')+'\n'}
+ return t.trim()}
+function vcopy(){const ns=nights().filter(n=>Date.now()>=nT0(n));if(!ns.length)return `<div class="card"><b>À copier pour Claude</b><div class="t">Disponible dès qu'une nuit a commencé.</div></div>`;
+ const n=rnight&&ns.includes(rnight)?rnight:ns[ns.length-1];rnight=n;
+ return `<div class="card"><b>À copier pour Claude</b><div class="t">Choisis la nuit, copie le texte et colle-le dans la conversation avec Claude.</div><div class="r"><select id="rn" aria-label="Nuit">${ns.slice().reverse().map(x=>`<option value="${x}" ${x===n?'selected':''}>${fd(x)}</option>`).join('')}</select></div><textarea readonly id="cpt" class="cpy">${e(copyText())}</textarea><button class="b" id="cpb">Copier le texte</button></div>`}
 function vi(){return `<div class="card"><b>Importer</b><div class="t">Colle ici le bloc fourni par Claude (programme, résultats, marqueurs) ou une sauvegarde complète.</div><textarea id="imp" style="width:100%;height:120px;box-sizing:border-box;border:2px solid var(--line);border-radius:8px;padding:6px;font-size:12px"></textarea><button class="b" id="impb">Importer</button></div>`}
 function vz(){
  let bk=`<div class="card"><b>Sauvegarde</b><div class="t">La sauvegarde complète contient les pronos de tout le monde, y compris ceux pas encore révélés : ne l'ouvre pas avant les matchs. L'export Excel ne contient que les matchs commencés.</div><button class="b" id="exj">Exporter la sauvegarde complète</button><button class="b" id="exc">Exporter les résultats (Excel)</button></div>`;let h='';const x=NS[night]||{},top=x.top||{},pp=x.pp||{},pk=npk(night);
@@ -210,6 +229,7 @@ document.addEventListener('click',t=>{const d=t.target.dataset;
  if(t.target.id==='lgok'){const pin=$('pin').value.trim();if(!/^\d{4}$/.test(pin)){err='Le code doit faire 4 chiffres.';render();return}const hh=btoa(pin+'|nba'),d0=K[LG],go=()=>{ME.uid=LG;LG=null;err='';remember(ME.uid,hh);render()};
   if(d0&&d0.name){if(d0.pin!==hh){err='Code incorrect.';render();return}go()}else wr(0,async()=>{await DB.doc('picks/'+LG).set({name:LG,p:{},pin:hh});go()})}
  if(t.target.id==='exps'){$('expt').select()}
+ if(t.target.id==='cpb'){const tx=copyText(),ta=$('cpt');wr(0,async()=>{try{await navigator.clipboard.writeText(tx);OKM='✔ Texte copié'}catch(x){ta.select();OKM='Texte sélectionné : fais « Copier » dans le menu de ton téléphone'}})}
  if(t.target.id==='expx'){EXP=null;render()}
  if(t.target.id==='impb'){const raw=$('imp').value.trim();wr(0,async()=>{const o=JSON.parse(raw);
   if(o.matchs){const m={};o.matchs.forEach(g=>{const r=Object.assign({},g);delete r.id;m[g.id]=r});await sset('games',m)}
@@ -229,6 +249,7 @@ document.addEventListener('click',t=>{const d=t.target.dataset;
 document.addEventListener('change',t=>{const el=t.target,d=el.dataset;
  if(el.id==='ns'){night=el.value;render();return}
  if(el.id==='cn'){cnight=el.value;render();return}
+ if(el.id==='rn'){rnight=el.value;render();return}
  if(d.np){if(Date.now()>=nT0(d.np)){err='Le premier match a commencé : choix verrouillé.';render();return}const np=Object.assign({},mine().np||{});np[d.np]=el.value.trim();wr(0,()=>savePatch({np}));return}
  if(d.s){if(Date.now()>=t0()){err='La saison a commencé : pronostics verrouillés.';render();return}const s=Object.assign({},mine().s||{});s[d.s]=el.value.trim();wr(0,()=>savePatch({s}));return}
  if(d.drt!==undefined||d.drd!==undefined){const i=+(d.drt!==undefined?d.drt:d.drd),lim=n=>Number.isFinite(nT0(n))?nT0(n):new Date(n+'T00:00:00Z').getTime(),cur=Array.isArray(mine().dr)?mine().dr.map(u=>u&&Object.assign({},u)):[],u=cur[i]||{t:'',n:''};if(u.n&&Date.now()>=lim(u.n)){err='Cette patate est déjà jouée.';render();return}if(d.drt!==undefined)u.t=el.value;else{if(el.value&&Date.now()>=lim(el.value)){err='Trop tard pour cette nuit.';render();return}u.n=el.value}cur[i]=u;const dr=[0,1].map(k=>cur[k]||{t:'',n:''});wr(0,()=>savePatch({dr}));return}
