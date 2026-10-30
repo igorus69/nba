@@ -68,6 +68,8 @@ tr.cat small{font:500 12px Barlow,sans-serif;text-transform:none;opacity:.9}
 .cpy{width:100%;height:110px;box-sizing:border-box;border:2px solid var(--line);border-radius:8px;padding:6px;font-size:13px;background:var(--bg);color:var(--ink)}
 .rules summary{cursor:pointer;padding:2px 0}
 .rl{margin:4px 0 10px;padding-left:18px;font-size:14px}.rl li{margin:4px 0}
+option.nx{font-weight:700;background:#FDB927;color:#0B1F3F}
+.nsel button{background:#FDB927;color:#0B1F3F;border:0;border-radius:8px;padding:7px 10px;font:700 13px 'Barlow Condensed',sans-serif;letter-spacing:.03em;white-space:nowrap;cursor:pointer}
 </style>
 </head>
 <body>
@@ -147,9 +149,9 @@ function render(){
   if(LG){const d0=K[LG],nw=!(d0&&d0.name);h+=`<div class="card"><b>${LG}</b><p class="sub">${nw?'Première fois : choisis un code à 4 chiffres et retiens-le.':'Entre ton code à 4 chiffres.'}</p><div class="r"><input id="pin" type="password" inputmode="numeric" maxlength="4" placeholder="Code" autocomplete="off"></div><button class="b" id="lgok">Valider</button><button class="b" id="lgx" style="background:#0B1F3F">Retour</button></div>`}
   else h+=`<div class="card"><b>Qui es-tu ?</b><p class="sub">Choisis ton nom.</p><div class="pick">${PL.map(n=>`<button data-claim="${n}">${n}${K[n]&&K[n].name?'':' (libre)'}</button>`).join('')}</div></div>`;
  }else h+=tab==='p'?vp():tab==='c'?vc():tab==='s'?vpat()+duelUI()+vuse()+vs()+vb()+vdev():vi()+vcopy()+va()+vz()+vw();
- h+='<p class="sub" style="text-align:center">Version 3.1 · 26/10/2026</p>';h+=`<nav><button data-tab="p" aria-pressed="${tab==='p'}">Pronos</button><button data-tab="c" aria-pressed="${tab==='c'}">Classement</button><button data-tab="s" aria-pressed="${tab==='s'}">Saison</button>${ME.owner?`<button data-tab="a" aria-pressed="${tab==='a'}">Admin</button>`:''}</nav>`;
+ h+='<p class="sub" style="text-align:center">Version 3.2 · 30/10/2026</p>';h+=`<nav><button data-tab="p" aria-pressed="${tab==='p'}">Pronos</button><button data-tab="c" aria-pressed="${tab==='c'}">Classement</button><button data-tab="s" aria-pressed="${tab==='s'}">Saison</button>${ME.owner?`<button data-tab="a" aria-pressed="${tab==='a'}">Admin</button>`:''}</nav>`;
  $('root').innerHTML=h}
-function nsel(){const ns=nights();if(!ns.length)return '';if(!night||!ns.includes(night))night=defNight();return `<div class="nsel"><span>Nuit du</span><select id="ns" aria-label="Nuit">${ns.map(n=>`<option value="${n}" ${n===night?'selected':''}>${fd(n)}</option>`).join('')}</select></div>`}
+function nsel(){const ns=nights();if(!ns.length)return '';if(!night||!ns.includes(night))night=defNight();const nx=defNight();return `<div class="nsel"><span>Nuit du</span><select id="ns" aria-label="Nuit">${ns.map(n=>`<option value="${n}" ${n===night?'selected':''} ${n===nx?'class="nx"':''}>${n===nx?'★ ':''}${fd(n)}${n===nx?' · prochaine nuit':''}</option>`).join('')}</select>${night!==nx?'<button id="gonx" type="button">★ Prochaine nuit</button>':''}</div>`}
 function vp(){
  if(!G.length)return `<div class="card">Aucun match pour l'instant.${ME.owner?' Ajoute-les dans l\'onglet Admin.':''}</div>`;
  let h=nsel();
@@ -232,6 +234,7 @@ document.addEventListener('click',t=>{const d=t.target.dataset;
  if(t.target.id==='lgx'){LG=null;err='';render()}
  if(t.target.id==='lgok'){const pin=$('pin').value.trim();if(!/^\d{4}$/.test(pin)){err='Le code doit faire 4 chiffres.';render();return}const hh=btoa(pin+'|nba'),d0=K[LG],go=()=>{ME.uid=LG;LG=null;err='';remember(ME.uid,hh);render()};
   if(d0&&d0.name){if(d0.pin!==hh){err='Code incorrect.';render();return}go()}else wr(0,async()=>{await DB.doc('picks/'+LG).set({name:LG,p:{},pin:hh});go()})}
+ if(t.target.id==='gonx'){night=defNight();render();return}
  if(t.target.id==='expd'&&EXP){try{const bl=new Blob([EXP.data],{type:'text/plain;charset=utf-8'}),ul=URL.createObjectURL(bl),an=document.createElement('a');an.href=ul;an.download=EXP.name;document.body.appendChild(an);an.click();setTimeout(()=>{URL.revokeObjectURL(ul);an.remove()},1500)}catch(x){err='Téléchargement impossible : utilise « Tout sélectionner pour copier ».';render()}}
  if(t.target.id==='exps'){$('expt').select()}
  if(t.target.id==='cpb'){const tx=copyText(),ta=$('cpt');wr(0,async()=>{try{await navigator.clipboard.writeText(tx);OKM='✔ Texte copié'}catch(x){ta.select();OKM='Texte sélectionné : fais « Copier » dans le menu de ton téléphone'}})}
