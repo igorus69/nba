@@ -70,6 +70,11 @@ tr.cat small{font:500 12px Barlow,sans-serif;text-transform:none;opacity:.9}
 .rl{margin:4px 0 10px;padding-left:18px;font-size:14px}.rl li{margin:4px 0}
 option.nx{font-weight:700;background:#FDB927;color:#0B1F3F}
 .nsel button{background:#FDB927;color:#0B1F3F;border:0;border-radius:8px;padding:7px 10px;font:700 13px 'Barlow Condensed',sans-serif;letter-spacing:.03em;white-space:nowrap;cursor:pointer}
+.chk{border-radius:10px;padding:8px 10px;margin-bottom:10px;font-size:14px;border:2px solid}
+.chk.okc{border-color:#007A33;background:rgba(0,122,51,.14)}
+.chk.warn{border-color:#FDB927;background:rgba(253,185,39,.2)}
+.chk .mt{margin-top:4px;font-size:13px;color:var(--mute)}
+.chk.bad{border-color:#C8102E;background:rgba(200,16,46,.12)}
 </style>
 </head>
 <body>
@@ -149,15 +154,29 @@ function render(){
   if(LG){const d0=K[LG],nw=!(d0&&d0.name);h+=`<div class="card"><b>${LG}</b><p class="sub">${nw?'Première fois : choisis un code à 4 chiffres et retiens-le.':'Entre ton code à 4 chiffres.'}</p><div class="r"><input id="pin" type="password" inputmode="numeric" maxlength="4" placeholder="Code" autocomplete="off"></div><button class="b" id="lgok">Valider</button><button class="b" id="lgx" style="background:#0B1F3F">Retour</button></div>`}
   else h+=`<div class="card"><b>Qui es-tu ?</b><p class="sub">Choisis ton nom.</p><div class="pick">${PL.map(n=>`<button data-claim="${n}">${n}${K[n]&&K[n].name?'':' (libre)'}</button>`).join('')}</div></div>`;
  }else h+=tab==='p'?vp():tab==='c'?vc():tab==='s'?vpat()+duelUI()+vuse()+vs()+vb()+vdev():vi()+vcopy()+va()+vz()+vw();
- h+='<p class="sub" style="text-align:center">Version 3.2 · 30/10/2026</p>';h+=`<nav><button data-tab="p" aria-pressed="${tab==='p'}">Pronos</button><button data-tab="c" aria-pressed="${tab==='c'}">Classement</button><button data-tab="s" aria-pressed="${tab==='s'}">Saison</button>${ME.owner?`<button data-tab="a" aria-pressed="${tab==='a'}">Admin</button>`:''}</nav>`;
+ h+='<p class="sub" style="text-align:center">Version 3.5 · 09/11/2026</p>';h+=`<nav><button data-tab="p" aria-pressed="${tab==='p'}">Pronos</button><button data-tab="c" aria-pressed="${tab==='c'}">Classement</button><button data-tab="s" aria-pressed="${tab==='s'}">Saison</button>${ME.owner?`<button data-tab="a" aria-pressed="${tab==='a'}">Admin</button>`:''}</nav>`;
  $('root').innerHTML=h}
 function nsel(){const ns=nights();if(!ns.length)return '';if(!night||!ns.includes(night))night=defNight();const nx=defNight();return `<div class="nsel"><span>Nuit du</span><select id="ns" aria-label="Nuit">${ns.map(n=>`<option value="${n}" ${n===night?'selected':''} ${n===nx?'class="nx"':''}>${n===nx?'★ ':''}${fd(n)}${n===nx?' · prochaine nuit':''}</option>`).join('')}</select>${night!==nx?'<button id="gonx" type="button">★ Prochaine nuit</button>':''}</div>`}
+function vcheck(){
+ const gs=G.filter(g=>g.night===night).sort((a,b)=>a.t-b.t);if(!gs.length||!ME.name)return '';
+ const my=mine(),todo=[],miss=[];let tot=0;
+ gs.forEach(g=>{tot++;const q=kp(ME.name,g),okm=q.ot||(q.w&&q.m!=='');const lb=g.a+' @ '+g.b;
+  if(!okm){const why=q.w&&q.m===''?'écart':(!q.w&&q.m!==''?'équipe':'équipe et écart');(locked(g)?miss:todo).push(lb+' ('+why+')')}});
+ if(isSun(night)){gs.forEach(g=>{tot++;if(!nrm((my.ms||{})[g.id]))(locked(g)?miss:todo).push('marqueur '+g.a+' @ '+g.b)})}
+ else{tot++;if(!nrm((my.np||{})[night]))(Date.now()>=nT0(night)?miss:todo).push('marqueur de la nuit')}
+ const lst=a=>a.length>=tot?'tout, rien n’a été rempli':a.slice(0,8).map(e).join(' · ')+(a.length>8?' · +'+(a.length-8)+' autres':'');
+ if(!todo.length&&!miss.length)return `<div class="chk okc"><b>Tout est rempli, bravo champion mais tes pronos sont aussi bons que le Shaq au lancer</b></div>`;
+ if(todo.length===tot)return `<div class="chk warn"><b>Rien n'est rempli, tu sers à rien comme le banc de Mike d'Antoni</b></div>`;
+ let h='';
+ if(todo.length)h+=`<div class="chk warn"><b>Il manque ${todo.length} case${todo.length>1?'s':''} à remplir. T'es aussi concentré que JR Smith en Finals 2018</b></div>`;
+ if(miss.length)h+=`<div class="chk bad"><b>Raté, t'es encore plus loser que les Kings</b><div class="mt">Oublié : ${lst(miss)}</div></div>`;
+ return h}
 function vp(){
  if(!G.length)return `<div class="card">Aucun match pour l'instant.${ME.owner?' Ajoute-les dans l\'onglet Admin.':''}</div>`;
- let h=nsel();
+ let h=nsel()+vcheck();
  G.filter(g=>g.night===night).sort((a,b)=>a.t-b.t).forEach(g=>{
   const L=locked(g),q=kp(ME.name,g),pts=gp(g);
-  h+=`<div class="card ${g.gotn?'g':''}"><div class="hd"><b>${e(g.a)} @ ${e(g.b)}</b>${g.gotn?'<span class="tag">Game Of the Night ×2</span>':''}</div><div class="t">${fr(g.t,{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} (heure française) · domicile : ${e(g.b)}</div>`;
+  h+=`<div class="card ${g.gotn?'g':''}"><div class="hd"><b>${e(g.a)} @ ${e(g.b)}</b>${g.gotn?'<span class="tag">Game Of the Night ×2</span>':''}${!L&&ME.name&&!(q.ot||(q.w&&q.m!==''))?'<span class="tag" style="background:#FDB927;color:#0B1F3F">à compléter</span>':''}</div><div class="t">${fr(g.t,{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} (heure française) · domicile : ${e(g.b)}</div>`;
   if(!L)h+=`<div class="r"><select data-w="${g.id}" aria-label="Vainqueur" ${q.ot?'disabled':''}><option value="">—</option><option value="A" ${!q.ot&&q.w==='A'?'selected':''}>${e(g.a)}</option><option value="B" ${!q.ot&&q.w==='B'?'selected':''}>${e(g.b)}</option></select><input type="number" inputmode="numeric" min="0" placeholder="écart" data-m="${g.id}" value="${q.ot?'':q.m}" ${q.ot?'disabled':''}><label class="ot"><input type="checkbox" data-o="${g.id}" ${q.ot?'checked':''}>OT</label></div><div class="lock">Modifiable jusqu'au coup d'envoi. Les pronos des autres restent cachés.</div>`+(isSun(g.night)?`<div class="r"><input data-ms="${g.id}" placeholder="Meilleur marqueur (nom complet)" value="${e((mine().ms||{})[g.id]||'')}"></div>`:'');
   else{
    if(g.r)h+=`<div class="t">Résultat : <b>${e(lab(g,g.r.w))} +${g.r.m}${g.r.ot?' (prolongation)':''}</b></div>`;else h+='<div class="t">En cours : résultat à venir</div>';
