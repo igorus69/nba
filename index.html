@@ -154,7 +154,7 @@ function render(){
   if(LG){const d0=K[LG],nw=!(d0&&d0.name);h+=`<div class="card"><b>${LG}</b><p class="sub">${nw?'Première fois : choisis un code à 4 chiffres et retiens-le.':'Entre ton code à 4 chiffres.'}</p><div class="r"><input id="pin" type="password" inputmode="numeric" maxlength="4" placeholder="Code" autocomplete="off"></div><button class="b" id="lgok">Valider</button><button class="b" id="lgx" style="background:#0B1F3F">Retour</button></div>`}
   else h+=`<div class="card"><b>Qui es-tu ?</b><p class="sub">Choisis ton nom.</p><div class="pick">${PL.map(n=>`<button data-claim="${n}">${n}${K[n]&&K[n].name?'':' (libre)'}</button>`).join('')}</div></div>`;
  }else h+=tab==='p'?vp():tab==='c'?vc():tab==='s'?vpat()+duelUI()+vuse()+vs()+vb()+vdev():vi()+vcopy()+va()+vz()+vw();
- h+='<p class="sub" style="text-align:center">Version 3.9 · 13/11/2026</p>';h+=`<nav><button data-tab="p" aria-pressed="${tab==='p'}">Pronos</button><button data-tab="c" aria-pressed="${tab==='c'}">Classement</button><button data-tab="s" aria-pressed="${tab==='s'}">Saison</button>${ME.owner?`<button data-tab="a" aria-pressed="${tab==='a'}">Admin</button>`:''}</nav>`;
+ h+='<p class="sub" style="text-align:center">Version 4.1 · 14/11/2026</p>';h+=`<nav><button data-tab="p" aria-pressed="${tab==='p'}">Pronos</button><button data-tab="c" aria-pressed="${tab==='c'}">Classement</button><button data-tab="s" aria-pressed="${tab==='s'}">Saison</button>${ME.owner?`<button data-tab="a" aria-pressed="${tab==='a'}">Admin</button>`:''}</nav>`;
  $('root').innerHTML=h}
 function nsel(){const ns=nights();if(!ns.length)return '';if(!night||!ns.includes(night))night=defNight();const nx=defNight();return `<div class="nsel"><span>Nuit du</span><select id="ns" aria-label="Nuit">${ns.map(n=>`<option value="${n}" ${n===night?'selected':''} ${n===nx?'class="nx"':''}>${n===nx?'★ ':''}${fd(n)}${n===nx?' · prochaine nuit':''}</option>`).join('')}</select>${night!==nx?'<button id="gonx" type="button">★ Prochaine nuit</button>':''}</div>`}
 function vcheck(){
@@ -171,6 +171,12 @@ function vcheck(){
  if(todo.length)h+=`<div class="chk warn"><b>Il manque ${todo.length} case${todo.length>1?'s':''} à remplir. T'es aussi concentré que JR Smith en Finals 2018</b></div>`;
  if(miss.length)h+=`<div class="chk bad"><b>Raté, t'es encore plus loser que les Kings</b><div class="mt">Oublié : ${lst(miss)}</div></div>`;
  return h}
+const pc=v=>`<b style="color:${v>0?'#007A33':v<0?'#C8102E':'inherit'}">${v>0?'+':''}${v}</b>`;
+function vrecap(){if(!night||!G.some(g=>g.night===night&&g.r))return '';
+ const M={},MQ={};PL.forEach(n=>{M[n]=0;MQ[n]=0});
+ G.filter(g=>g.night===night&&g.r).forEach(g=>{const o=gp(g,'m'),q=gp(g,'s');PL.forEach(n=>{M[n]+=o[n];MQ[n]+=q[n]})});
+ const s=nsp(night),R=PL.map(n=>{const h=hit(n,night),m=M[n],q=MQ[n]+s.q[n],b=s.b[n];return {n,h,m,q,b,t:h?0:m+q+b}}).sort((a,b)=>b.t-a.t);
+ return `<div class="card"><b>Récap de la nuit</b><div class="t">Mêmes chiffres que le Classement de la nuit : points des pronos, du marqueur et bonus.</div><table><tr><th></th><th>Matchs</th><th>Marqueur</th><th>Bonus</th><th>Total</th></tr>${R.map((r,i)=>`<tr><td>${i+1}. ${r.n}</td><td>${pc(r.m)}</td><td>${pc(r.q)}</td><td>${pc(r.b)}</td><td style="${r.h?'background:var(--red);color:#fff':''}"><b>${r.t}</b>${r.h?`<br><small>(aurait eu ${r.m+r.q+r.b})</small>`:''}</td></tr>`).join('')}</table></div>`}
 function vp(){
  if(!G.length)return `<div class="card">Aucun match pour l'instant.${ME.owner?' Ajoute-les dans l\'onglet Admin.':''}</div>`;
  let h=nsel()+vcheck();
@@ -180,8 +186,9 @@ function vp(){
   if(!L)h+=`<div class="r"><select data-w="${g.id}" aria-label="Vainqueur" ${q.ot?'disabled':''}><option value="">—</option><option value="A" ${!q.ot&&q.w==='A'?'selected':''}>${e(g.a)}</option><option value="B" ${!q.ot&&q.w==='B'?'selected':''}>${e(g.b)}</option></select><input type="number" inputmode="numeric" min="0" placeholder="écart" data-m="${g.id}" value="${q.ot?'':q.m}" ${q.ot?'disabled':''}><label class="ot"><input type="checkbox" data-o="${g.id}" ${q.ot?'checked':''}>OT</label></div><div class="lock">Modifiable jusqu'au coup d'envoi. Les pronos des autres restent cachés.</div>`+(isSun(g.night)?`<div class="r"><input data-ms="${g.id}" placeholder="Meilleur marqueur (nom complet)" value="${e((mine().ms||{})[g.id]||'')}"></div>`:'');
   else{
    if(g.r)h+=`<div class="t">Résultat : <b>${e(lab(g,g.r.w))} +${g.r.m}${g.r.ot?' (prolongation)':''}</b></div>`;else h+='<div class="t">En cours : résultat à venir</div>';
-   h+=`<table><tr><th></th><th>Prono</th>${pts?'<th>Pts</th>':''}</tr>${PL.map(n=>`<tr><td>${n}</td><td>${e(fmt(g,kp(n,g)))}</td>${pts?`<td><b>${pts[n]}</b></td>`:''}</tr>`).join('')}</table>`+(isSun(g.night)?sunTbl(g):'')}
-  h+='</div>'});h+=vns();h+='<button class="b" id="savebtn">Enregistrer</button><div class="lock" style="text-align:center">Ce bouton sert seulement à valider la dernière case en cours. Tes pronos sont déjà enregistrés dès que tu quittes une case.</div>';h+=vrules();
+   const sun=isSun(g.night),pm=g.r?gp(g,'m'):null,ps=g.r&&sun?gp(g,'s'):null,bb=g.bs||{};
+   h+=`<table><tr><th></th><th>Prono</th>${pm?'<th>Pts</th>':''}${sun?'<th>Marqueur</th>'+(ps?'<th>Pts</th>':''):''}</tr>${PL.map(n=>{const dd=dOf(n),mm=sun?(dd&&dd.ms&&dd.ms[g.id]||'—'):'';return `<tr><td>${n}</td><td>${e(fmt(g,kp(n,g)))}</td>${pm?`<td>${pc(pm[n])}</td>`:''}${sun?`<td>${e(mm)}${bb.pp&&bb.pp[n]!=null?' ('+bb.pp[n]+')':''}</td>${ps?`<td>${pc(ps[n])}</td>`:''}`:''}</tr>`}).join('')}</table>`+(sun&&bb.name?`<div class="t">Meilleur marqueur du match : <b>${e(bb.name)} (${bb.pts})</b></div>`:'')}
+  h+='</div>'});h+=vns()+vrecap();h+='<button class="b" id="savebtn">Enregistrer</button><div class="lock" style="text-align:center">Ce bouton sert seulement à valider la dernière case en cours. Tes pronos sont déjà enregistrés dès que tu quittes une case.</div>';h+=vrules();
  return h}
 function vns(){
  if(!night)return '';if(isSun(night))return '<div class="card"><b>Super Sunday</b><p class="sub">Le dimanche, choisis un marqueur sous chaque match.</p></div>';
